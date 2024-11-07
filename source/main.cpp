@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 
 typedef struct _commandline_args
 {
@@ -16,6 +17,18 @@ void print_usage(int argc, char* argv[])
   fprintf(stderr, "OR\n");
   fprintf(stderr, "USAGE: %s input_filename start_frame end_frame\n", argv[0]);
   fprintf(stderr, " - use printf() style formating for input sequence - i.e. input.%%06d.tif\n");
+
+  return;
+}
+
+// https://www.ibm.com/docs/en/i/7.4?topic=functions-vsnprintf-print-argument-data-buffer
+void make_filename(char* output_string, size_t output_string_length, char* formatted_string, ...)
+{
+  va_list arg_ptr;
+
+  va_start(arg_ptr, formatted_string);
+  vsnprintf(output_string, output_string_length, formatted_string, arg_ptr);
+  va_end(arg_ptr);
 
   return;
 }
@@ -53,7 +66,8 @@ int main( int argc, char* argv[])
         unsigned int number_of_frames_to_process = args.end_frame - args.start_frame + 1;
         for( unsigned int frame_index = 0; frame_index < number_of_frames_to_process; frame_index++)
         {
-            snprintf(input_filename, sizeof(input_filename), args.input_filename, frame_index + args.start_frame);
+            //snprintf(input_filename, sizeof(input_filename), args.input_filename, frame_index + args.start_frame);
+            make_filename(input_filename, sizeof(input_filename), args.input_filename, frame_index + args.start_frame);
             fprintf( stdout, "input_filename = %s\n", input_filename );
         }
         

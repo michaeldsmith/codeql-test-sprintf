@@ -53,7 +53,8 @@ int main( int argc, char* argv[])
         unsigned int number_of_frames_to_process = args.end_frame - args.start_frame + 1;
         for( unsigned int frame_index = 0; frame_index < number_of_frames_to_process; frame_index++)
         {
-            sprintf(input_filename, args.input_filename, frame_index + args.start_frame);
+            snprintf(input_filename, sizeof(input_filename), "%s", args.input_filename);
+            snprintf(input_filename, sizeof(input_filename), input_filename, frame_index + args.start_frame);
             fprintf( stdout, "input_filename = %s\n", input_filename );
         }
         

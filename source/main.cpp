@@ -22,13 +22,42 @@ void print_usage(int argc, char* argv[])
 }
 
 // https://www.ibm.com/docs/en/i/7.4?topic=functions-vsnprintf-print-argument-data-buffer
-void make_filename(char* output_string, size_t output_string_length, char* formatted_string, ...)
+void make_filename_va(char* output_string, size_t output_string_length, char* formatted_string, ...)
 {
   va_list arg_ptr;
 
   va_start(arg_ptr, formatted_string);
   vsnprintf(output_string, output_string_length, formatted_string, arg_ptr);
   va_end(arg_ptr);
+
+  return;
+}
+
+// https://www.ibm.com/docs/en/i/7.4?topic=functions-vsnprintf-print-argument-data-buffer
+void make_filename(char* output_string, char* input_string_with_pound_signs, const unsigned int frame_number )
+{
+  // find pound (#) signs in input string
+  char pound_signs[] = "############";
+  
+  unsigned int number_of_digits = 0;
+  bool keep_searching = true;
+  while (true == keep_searching)
+  {
+    number_of_digits++;
+    char pound_signs_to_find[32] = { '\0' };
+    strncpy(pound_signs_to_find, pound_signs, number_of_digits);
+    char* p = strstr(input_string_with_pound_signs, pound_signs_to_find);
+    if (p)
+    {
+      fprintf(stdout, "found %s is %s\n", pound_signs_to_find, p);
+    }
+    else
+    {
+      fprintf(stdout, "%s not found in %s\n", pound_signs_to_find, input_string_with_pound_signs);
+      break;
+    }
+    
+  };
 
   return;
 }
@@ -67,10 +96,9 @@ int main( int argc, char* argv[])
         for( unsigned int frame_index = 0; frame_index < number_of_frames_to_process; frame_index++)
         {
             //snprintf(input_filename, sizeof(input_filename), args.input_filename, frame_index + args.start_frame);
-            make_filename(input_filename, sizeof(input_filename), args.input_filename, frame_index + args.start_frame);
+            make_filename_va(input_filename, sizeof(input_filename), args.input_filename, frame_index + args.start_frame);
             fprintf( stdout, "input_filename = %s\n", input_filename );
         }
-        
     }
     else
     {

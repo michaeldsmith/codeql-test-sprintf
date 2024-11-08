@@ -21,28 +21,16 @@ void print_usage(int argc, char* argv[])
   fprintf(stderr, "USAGE: %s input_filename\n", argv[0]);
   fprintf(stderr, "OR\n");
   fprintf(stderr, "USAGE: %s input_filename start_frame end_frame\n", argv[0]);
-  fprintf(stderr, " - use printf() style formating for input sequence - i.e. input.%%06d.tif\n");
-
-  return;
-}
-
-// https://www.ibm.com/docs/en/i/7.4?topic=functions-vsnprintf-print-argument-data-buffer
-void make_filename_va(char* output_string, size_t output_string_length, char* formatted_string, ...)
-{
-  va_list arg_ptr;
-
-  va_start(arg_ptr, formatted_string);
-  vsnprintf(output_string, output_string_length, formatted_string, arg_ptr);
-  va_end(arg_ptr);
+  fprintf(stderr, " - use # symbols for input sequence frame number digits - i.e. input.######.tif\n");
 
   return;
 }
 
 void split_filename_with_symbols_into_parts( char* input_string_with_symbols_to_find, char* prefix, char* suffix, unsigned int* number_of_digits)
 {
-  // this function splits an input string with sequential pound signs into prefix, suffix and number of digits
+  // this function splits an input string with sequential symbols into prefix, suffix and number of digits
   // for example test.####.tif will be split into prefix = test. suffix = .tif and number_of_digits = 4
-  // find pound (#) signs in input string
+
   const char* symbol_to_find = "#";
 
   *number_of_digits = 0;
@@ -100,6 +88,7 @@ void make_filename(char* output_string, const char* prefix, const char* suffix, 
   if (number_of_digits > 0)
   {
     char string_formatting[MAX_PATH_LENGTH] = { '\0' };
+    // make a string with the appropriate number of digits, like "%s%06d%s"
     snprintf(string_formatting, sizeof(string_formatting), "%%s%%0%dd%%s", number_of_digits);
 
     snprintf(output_string, max_string_copy, string_formatting, prefix, frame_number, suffix);
@@ -108,37 +97,6 @@ void make_filename(char* output_string, const char* prefix, const char* suffix, 
   { 
     snprintf(output_string, max_string_copy, "%s%s", prefix, suffix);
   }
-
-#if 0
-  switch (number_of_digits)
-  {
-  case 0:
-    sprintf(output_string, "%s%s", prefix, suffix); break;
-  case 1:
-    sprintf(output_string, "%s%01d%s", prefix, frame_number, suffix); break;
-  case 2:
-    sprintf(output_string, "%s%02d%s", prefix, frame_number, suffix); break;
-  case 3:
-    sprintf(output_string, "%s%03d%s", prefix, frame_number, suffix); break;
-  case 4:
-    sprintf(output_string, "%s%04d%s", prefix, frame_number, suffix); break;
-  case 5:
-    sprintf(output_string, "%s%05d%s", prefix, frame_number, suffix); break;
-  case 6:
-    sprintf(output_string, "%s%06d%s", prefix, frame_number, suffix); break;
-  case 7:
-    sprintf(output_string, "%s%07d%s", prefix, frame_number, suffix); break;
-  case 8:
-    sprintf(output_string, "%s%08d%s", prefix, frame_number, suffix); break;
-  case 9:
-    sprintf(output_string, "%s%09d%s", prefix, frame_number, suffix); break;
-  default:
-    fprintf(stderr, "ERROR on line %d of file %s in function %s: number_of_digits = %d, this should be between 0-9\n",
-      __LINE__, __FILE__, __FUNCTION__, number_of_digits);
-    break;
-  }
-#endif
-
 
   return;
 }
@@ -181,8 +139,6 @@ int main( int argc, char* argv[])
         unsigned int number_of_frames_to_process = args.end_frame - args.start_frame + 1;
         for( unsigned int frame_index = 0; frame_index < number_of_frames_to_process; frame_index++)
         {
-            //snprintf(input_filename, sizeof(input_filename), args.input_filename, frame_index + args.start_frame);
-            //make_filename_va(input_filename, sizeof(input_filename), args.input_filename, frame_index + args.start_frame);
             make_filename(input_filename, args.prefix, args.suffix, args.number_of_digits, frame_index);
             fprintf( stdout, "input_filename = %s\n", input_filename );
         }

@@ -38,46 +38,56 @@ void make_filename_va(char* output_string, size_t output_string_length, char* fo
   return;
 }
 
-void split_filename_with_poundsigns_into_parts( char* input_string_with_pound_signs, char* prefix, char* suffix, unsigned int* number_of_digits)
+void split_filename_with_symbols_into_parts( char* input_string_with_symbols_to_find, char* prefix, char* suffix, unsigned int* number_of_digits)
 {
   // this function splits an input string with sequential pound signs into prefix, suffix and number of digits
   // for example test.####.tif will be split into prefix = test. suffix = .tif and number_of_digits = 4
   // find pound (#) signs in input string
-  const char pound_signs[] = "################";
+  const char* symbol_to_find = "#";
 
   *number_of_digits = 0;
   bool keep_searching = true;
   char* found_search_result = NULL;
-  while (true == keep_searching)
+  while (true == keep_searching && *number_of_digits < 10 )
   {
-    char pound_signs_to_find[MAX_PATH_LENGTH] = { '\0' };
-    strncpy(pound_signs_to_find, pound_signs, (size_t)(*number_of_digits) + 1);
-    char* search_result = strstr(input_string_with_pound_signs, pound_signs_to_find);
+    char symbols_to_find[MAX_PATH_LENGTH] = { '\0' };
+    for (size_t i = 1; i <= (size_t)*number_of_digits + 1; i++)
+    {
+      strncat(symbols_to_find, symbol_to_find, 1);
+    }
+    char* search_result = strstr(input_string_with_symbols_to_find, symbols_to_find);
     if (search_result)
     {
-      //fprintf(stdout, "found %s in %s\n", pound_signs_to_find, search_result);
       found_search_result = search_result;
       *number_of_digits = *number_of_digits + 1;
     }
     else
     {
-      //fprintf(stdout, "%s not found in %s\n", pound_signs_to_find, input_string_with_pound_signs);
       keep_searching = false;
     }
 
   };
 
+  if (*number_of_digits > 9)
+  {
+    fprintf(stderr, "WARNING on line %d of file %s in function %s:\n number_of_digits = %d is greater than 9\n",
+      __LINE__, __FILE__, __FUNCTION__, *number_of_digits);
+  }
+
   if (NULL != found_search_result)
   {
-    //fprintf(stdout, "number_of_digits = %d in %s\n", *number_of_digits, found_search_result);
     // find prefix
-    size_t number_of_prefix_chars = found_search_result - input_string_with_pound_signs;
-    strncpy(prefix, input_string_with_pound_signs, number_of_prefix_chars);
-    //fprintf(stdout, "prefix = %s\n", prefix);
+    size_t number_of_prefix_chars = found_search_result - input_string_with_symbols_to_find;
+    strncpy(prefix, input_string_with_symbols_to_find, number_of_prefix_chars);
     // find suffix
-    size_t input_string_length = strlen(input_string_with_pound_signs);
+    size_t input_string_length = strlen(input_string_with_symbols_to_find);
     strncpy(suffix, &found_search_result[*number_of_digits], (size_t)(input_string_length - *number_of_digits));
-    //fprintf(stdout, "suffix = %s\n", suffix);
+  }
+  else
+  {
+    // since no symbols were found, just copy the filename into prefix
+    size_t number_of_prefix_chars = strnlen(input_string_with_symbols_to_find, MAX_PATH_LENGTH);
+    strncpy(prefix, input_string_with_symbols_to_find, number_of_prefix_chars);
   }
   
   return;
@@ -85,9 +95,21 @@ void split_filename_with_poundsigns_into_parts( char* input_string_with_pound_si
 
 void make_filename(char* output_string, const char* prefix, const char* suffix, const unsigned int number_of_digits, const unsigned int frame_number)
 {
-  //char string_formatting[MAX_PATH_LENGTH] = { '\0' };
-  //snprintf(string_formatting, sizeof(string_formatting), "%%s%%0%dd%%s", number_of_digits);
+  size_t max_string_copy = sizeof(prefix) + sizeof(suffix) + (size_t)number_of_digits;
 
+  if (number_of_digits > 0)
+  {
+    char string_formatting[MAX_PATH_LENGTH] = { '\0' };
+    snprintf(string_formatting, sizeof(string_formatting), "%%s%%0%dd%%s", number_of_digits);
+
+    snprintf(output_string, max_string_copy, string_formatting, prefix, frame_number, suffix);
+  }
+  else
+  { 
+    snprintf(output_string, max_string_copy, "%s%s", prefix, suffix);
+  }
+
+#if 0
   switch (number_of_digits)
   {
   case 0:
@@ -115,6 +137,8 @@ void make_filename(char* output_string, const char* prefix, const char* suffix, 
       __LINE__, __FILE__, __FUNCTION__, number_of_digits);
     break;
   }
+#endif
+
 
   return;
 }
@@ -145,7 +169,7 @@ int main( int argc, char* argv[])
       print_usage(argc, argv);
       exit(-1);
     }
-    split_filename_with_poundsigns_into_parts(args.input_filename, args.prefix, args.suffix, &args.number_of_digits);
+    split_filename_with_symbols_into_parts(args.input_filename, args.prefix, args.suffix, &args.number_of_digits);
     fprintf(stdout, "input_filename = %s\n", args.input_filename);
     fprintf(stdout, "prefix = %s\n", args.prefix);
     fprintf(stdout, "suffix = %s\n", args.suffix);

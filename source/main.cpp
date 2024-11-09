@@ -36,7 +36,7 @@ void split_filename_with_symbols_into_parts( char* input_string_with_symbols_to_
   *number_of_digits = 0;
   bool keep_searching = true;
   char* found_search_result = NULL;
-  while (true == keep_searching && *number_of_digits < 10 )
+  while (true == keep_searching && *number_of_digits < 64 )
   {
     char symbols_to_find[MAX_PATH_LENGTH] = { '\0' };
     for (size_t i = 1; i <= (size_t)*number_of_digits + 1; i++)
@@ -56,9 +56,9 @@ void split_filename_with_symbols_into_parts( char* input_string_with_symbols_to_
 
   };
 
-  if (*number_of_digits > 9)
+  if (*number_of_digits > 64)
   {
-    fprintf(stderr, "WARNING on line %d of file %s in function %s:\n number_of_digits = %d is greater than 9\n",
+    fprintf(stderr, "WARNING on line %d of file %s in function %s:\n number_of_digits = %d is greater than 64\n",
       __LINE__, __FILE__, __FUNCTION__, *number_of_digits);
   }
 
